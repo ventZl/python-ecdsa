@@ -244,26 +244,42 @@ class Private_key(object):
         May raise RuntimeError, in which case retrying with a new
         random value k is in order.
         """
-
+        print("random_k:\n", int_to_string(random_k))
+        curve = self.public_key.generator.curve()
         G = self.public_key.generator
+        print("Inputs:")
         n = G.order()
+        print("modulus:\n", int_to_string(n))
+        a = curve.a() + G.order()
+        b = curve.b()
+        print("curve a:\n", int_to_string(a))
+        print("curve b:\n", int_to_string(b))
+
+        print("Gx:\n", int_to_string(G.x()), "\nGy:\n", int_to_string(G.y()))
         k = random_k % n
+        print("h:\n", int_to_string(numbertheory.inverse_mod(k, n)))
+        print("key:\n", int_to_string(self.secret_multiplier))
         # Fix the bit-length of the random nonce,
         # so that it doesn't leak via timing.
         # This does not change that ks = k mod n
         ks = k + n
         kt = ks + n
         if bit_length(ks) == bit_length(n):
+            print("kt:\n", int_to_string(k))
             p1 = kt * G
         else:
+            print("ks:\n", int_to_string(k))
             p1 = ks * G
         r = p1.x() % n
+        print("Outputs:\nr =\n", int_to_string(r))
+        print("hash =\n", int_to_string(hash))
         if r == 0:
             raise RSZeroError("amazingly unlucky random number r")
         s = (
             numbertheory.inverse_mod(k, n)
             * (hash + (self.secret_multiplier * r) % n)
         ) % n
+        print("s =\n", int_to_string(s))
         if s == 0:
             raise RSZeroError("amazingly unlucky random number s")
         return Signature(r, s)
@@ -277,11 +293,11 @@ def int_to_string(x):
     result = []
     while x:
         ordinal = x & 0xFF
-        result.append(int2byte(ordinal))
+        result.append("%02x" % (ordinal))
         x >>= 8
 
     result.reverse()
-    return b("").join(result)
+    return ", ".join(result)
 
 
 def string_to_int(s):

@@ -789,13 +789,14 @@ class SigningKey(object):
         return self
 
     @classmethod
-    def _weierstrass_keygen(cls, curve, entropy, hashfunc):
+    def _weierstrass_keygen(cls, curve, entropy, hashfunc, secexp = None):
         """Generate a private key on a Weierstrass curve."""
-        secexp = randrange(curve.order, entropy)
+        if secexp is None:
+            secexp = randrange(curve.order, entropy)
         return cls.from_secret_exponent(secexp, curve, hashfunc)
 
     @classmethod
-    def generate(cls, curve=NIST192p, entropy=None, hashfunc=sha1):
+    def generate(cls, curve=NIST192p, entropy=None, hashfunc=sha1, secexp = None):
         """
         Generate a random private key.
 
@@ -816,7 +817,7 @@ class SigningKey(object):
         """
         if isinstance(curve.curve, CurveEdTw):
             return cls._twisted_edwards_keygen(curve, entropy)
-        return cls._weierstrass_keygen(curve, entropy, hashfunc)
+        return cls._weierstrass_keygen(curve, entropy, hashfunc, secexp)
 
     @classmethod
     def from_secret_exponent(cls, secexp, curve=NIST192p, hashfunc=sha1):
